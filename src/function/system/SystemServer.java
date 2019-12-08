@@ -6,12 +6,11 @@ import function.screen.click.DoubleClick;
 import function.screen.click.LongClick;
 import function.screen.zoom.Zoom;
 import gui.ClickListener;
-import interpolation.Clustering;
-import interpolation.IInterpolation;
 import interpolation.Point;
 import org.apache.log4j.Logger;
+import post.IPostProcessor;
+import post.PostProcessor;
 import pre.Layer;
-import pre.PreProcessor;
 
 import java.util.List;
 import java.util.Observer;
@@ -19,7 +18,7 @@ import java.util.Observer;
 public class SystemServer implements ISystemServer {
     private Logger logger = Logger.getLogger(SystemServer.class.getName());
     private ISystemController systemController;
-    private IInterpolation interpolation;
+    private IPostProcessor postProcess;
     private int noiseDelta;
     private List<Point> currentAccuracyPointList;
     private static SystemServer systemServer;
@@ -29,7 +28,7 @@ public class SystemServer implements ISystemServer {
         systemController.addScreenOperation(new Click());
         systemController.addScreenOperation(new DoubleClick());
         systemController.addScreenOperation(new LongClick());
-        this.interpolation = new Clustering(new PreProcessor());
+        this.postProcess = new PostProcessor();
         this.noiseDelta = 25;
     }
 
@@ -41,7 +40,7 @@ public class SystemServer implements ISystemServer {
     }
     @Override
     public List<Message> newLayer(Layer layer){
-        currentAccuracyPointList = interpolation.getPoints(layer, noiseDelta);
+        currentAccuracyPointList = postProcess.process(layer);
         return systemController.processNewFragment(currentAccuracyPointList);
     }
 

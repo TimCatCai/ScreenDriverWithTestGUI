@@ -2,6 +2,7 @@ package interpolation;
 
 import pre.IPreProcessor;
 import pre.Layer;
+import pre.PreProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,8 @@ import java.util.List;
 
 public class Clustering implements IInterpolation{
     private IPreProcessor preProcessor;
-    public Clustering(IPreProcessor preProcessor) {
-        this.preProcessor = preProcessor;
+    public Clustering() {
+        this.preProcessor = new PreProcessor();
     }
 
     @Override
@@ -25,6 +26,12 @@ public class Clustering implements IInterpolation{
         List<Double> yAxiAccuracyPoint = clickPoints(layer.getyAxis());
         return combineTwoAxis(xAxiAccuracyPoint, yAxiAccuracyPoint);
     }
+
+    /**
+     * 判断整个屏幕是否处于静止状态，即是不是所有x,y通道电容值都是0
+     * @param layer
+     * @return true: 屏幕静止，false: 非静止
+     */
     private boolean isAllZero(Layer layer){
         boolean isAllZero = true;
         for(Integer aix: layer.getxAxis()){
@@ -47,21 +54,27 @@ public class Clustering implements IInterpolation{
     }
     /**
      * 只要是极小值即是分割点，获取所有分割点
+     * 这里对极小值处，连续相等的值的处理方式是：将其所有都划分在左边的簇中
      * @param capacitanceArray 电容数组
      * @return 所有极小值所在坐标
      */
     private List<Integer> breakPoints(List<Integer> capacitanceArray){
+        // 连续电容值呈下降趋势的标志，只要是下降趋势就会被设为true
         boolean breakPointLeft = false;
+        // 当前点之前连续电容值呈下降趋势，从当前点开始就开始呈递增趋势就会被设为true
+        // 即当前点之前的一个点就是我们要找的极小值
         boolean breakPointRight = false;
         List<Integer> result = new ArrayList<>();
         for(int i = 1; i < capacitanceArray.size(); i++){
-            // 如何解决相等问题
+            // 这里如果是连续相等，也会将其看做下降的趋势
             if(capacitanceArray.get(i) - capacitanceArray.get(i - 1) < 0){
                 breakPointLeft = true;
             }
+            // 前面点是递减的，从当前点开始递增，就将 breakPointRight设为true表示找到了极小值。
             if(breakPointLeft && capacitanceArray.get(i) - capacitanceArray.get(i - 1) > 0){
                 breakPointRight = true;
             }
+            // 找到最小值点时，将其添加到列表数组中
             if(breakPointLeft && breakPointRight){
                 // 前一个是分割点
                 result.add(i-1);

@@ -31,4 +31,12 @@ public class Layer {
     public void setyAxis(List<Integer> yAxis) {
         this.yAxis = yAxis;
     }
+
+    @Override
+    public String toString() {
+        return "Layer{\n" +
+                "xAxis=" + xAxis +
+                "\n yAxis=" + yAxis +
+                "}";
+    }
 }
